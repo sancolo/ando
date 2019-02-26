@@ -48,20 +48,19 @@ $ git clone https://github.com/sancolo/ando.git
 The tree of files and directories has the following structure:
 
 ```sh
-$ tree
-.
-`-- ando
-    |-- ansible
-    |   |-- playbooks
-    |   |   |-- README.md
-    |   |   `-- rpki-validator.yml
-    |   `-- README.md
-    |-- README.md
-    `-- docker
-	|-- dockerbuild_rpki-validator
-        |   |-- Dockerfile
-        |   `-- README.md
-        `-- README.md
+$ tree ando
+ando
+├── ansible
+│   ├── playbooks
+│   │   ├── README.md
+│   │   ├── rpki-validator.retry
+│   │   └── rpki-validator.yml
+│   └── README.md
+├── docker
+│   └── dockerbuild_rpki-validator
+│       ├── Dockerfile
+│       └── README.md
+└── README.md
 
 ```
 Finally, we execute ansible with the respective playbook file
