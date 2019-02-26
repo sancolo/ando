@@ -1,0 +1,73 @@
+---
+- name: Install ansible on VM
+  hosts: nodo
+  remote_user: santiago 
+  become: yes
+  become_user: root 
+  become_method: sudo
+
+  tasks:
+  - name: Install Pip, Ansible 
+    apt: name=python-pip update_cache=yes
+  - pip:
+      name: ansible 
+
+  - name: Install Docker-ce step 1/4
+    apt: 
+      name: ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg2', 'software-properties-common']
+      state: latest
+  
+  - name: Install Docker-ce step 2/4
+    apt_key:
+      url: https://download.docker.com/linux/debian/gpg
+
+  - name: Install Docker-ce step 3/4
+    shell: "{{ item }}"
+    with_items:
+      - apt-key fingerprint 0EBFCD8
+      - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
+  
+  - name: Install Docker-ce step 4/4
+    apt: 
+      name: ['docker-ce']
+      update_cache: yes
+   
+  - name: get the username running the deploy
+    become: false
+    local_action: command whoami
+    register: username_on_the_host
+
+  - debug: var=username_on_the_host
+
+  - name: Add User to docker group 
+    shell: usermod -aG docker {{ username_on_the_host.stdout }} 
+
+  - name: Enable Docker Service 
+    shell: systemctl enable docker.service
+
+  - name: Create directory to build Docker image
+    file:
+      path: ~/ando/docker/dockerbuild_rpki-validator 
+      state: directory
+      mode: 0755
+
+  - name: Copy Dockerfile
+    copy: src={{ item.src }} dest={{ item.dest }}
+    with_items:
+      - { src: '~/ando/docker/dockerbuild_rpki-validator/Dockerfile', dest: '~/ando/docker/dockerbuild_rpki-validator' }
+
+  - name: Create Docker Image RPKI-Validator
+    shell: docker build -t rpki-validator .
+    args:
+      chdir: ~/ando/docker/dockerbuild_rpki-validator
+
+  - name: Execute RPKI-Validator Container
+    shell: docker run --name rpki-validator -dit --restart unless-stopped -h rpki -p 8080:8080 -p 8282:8282 rpki-validator
+
+  - name: Check Container Running 
+    shell: docker ps 
+    register: shell_result
+
+  - debug:
+      var: shell_result.stdout_lines
+
