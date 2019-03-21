@@ -73,7 +73,7 @@
   - name: Create Docker Image RPKI-Validator
     shell: docker build -t rpki-validator .
     args:
-      chdir: ~/ando/docker/dockerbuild_rpki-validator
+      chdir: ~/ando/docker/build_rpki-validator
 
   - name: Execute RPKI-Validator Container
     shell: docker run --name rpki-validator -dit --restart unless-stopped -h rpki -p 8080:8080 -p 8282:8282 rpki-validator
