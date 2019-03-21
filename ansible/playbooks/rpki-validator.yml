@@ -12,49 +12,63 @@
   - pip:
       name: ansible 
 
+  - name: Check Docker is Installed 
+    package_facts:
+      manager: "auto" 
+
   - name: Install Docker-ce step 1/4
     apt: 
       name: ['apt-transport-https', 'ca-certificates', 'curl', 'gnupg2', 'software-properties-common']
       state: latest
+    when: ansible_facts.packages.docker is undefined
   
   - name: Install Docker-ce step 2/4
     apt_key:
       url: https://download.docker.com/linux/debian/gpg
+    when: ansible_facts.packages.docker is undefine
 
   - name: Install Docker-ce step 3/4
     shell: "{{ item }}"
     with_items:
       - apt-key fingerprint 0EBFCD8
       - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
-  
+    when: ansible_facts.packages.docker is undefine
+ 
   - name: Install Docker-ce step 4/4
     apt: 
       name: ['docker-ce']
       update_cache: yes
-   
+    when: ansible_facts.packages.docker is undefined 
+
+  - name: Check Docker is Running
+    service_facts:
+
   - name: get the username running the deploy
     become: false
     local_action: command whoami
     register: username_on_the_host
-
-  - debug: var=username_on_the_host
-
+    when: ansible_facts.services['docker.service'] is undefined
+#
+#  - debug: var=username_on_the_host
+#
   - name: Add User to docker group 
     shell: usermod -aG docker {{ username_on_the_host.stdout }} 
+    when: ansible_facts.services['docker.service'] is undefined
 
   - name: Enable Docker Service 
     shell: systemctl enable docker.service
+    when: ansible_facts.services['docker.service'] is undefined
 
   - name: Create directory to build Docker image
     file:
-      path: ~/ando/docker/dockerbuild_rpki-validator 
+      path: ~/ando/docker/build_rpki-validator 
       state: directory
       mode: 0755
 
   - name: Copy Dockerfile
     copy: src={{ item.src }} dest={{ item.dest }}
     with_items:
-      - { src: '~/ando/docker/dockerbuild_rpki-validator/Dockerfile', dest: '~/ando/docker/dockerbuild_rpki-validator' }
+      - { src: '~/ando/docker/build_rpki-validator/Dockerfile', dest: '~/ando/docker/build_rpki-validator' }
 
   - name: Create Docker Image RPKI-Validator
     shell: docker build -t rpki-validator .
