@@ -57,7 +57,7 @@ ando
 │   │   └── rpki-validator.yml
 │   └── README.md
 ├── docker
-│   └── dockerbuild_rpki-validator
+│   └── build_rpki-validator
 │       ├── Dockerfile
 │       └── README.md
 └── README.md
