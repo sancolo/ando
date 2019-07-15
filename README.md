@@ -70,6 +70,6 @@ $ cd ando/ansible/playbooks
 $ ansible-playbook -K rpki-validator.yml
 ```
 
-After the installation process we can verify that the rpki-validator is running in the virtual machine entering the url *http://IPv4\_virtual\_machine:8080*
+After the installation process we can verify that the rpki-validator is running in the virtual machine entering the url *http://IPv4_virtual_machine:8080*
 
 
